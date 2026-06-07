@@ -13,7 +13,21 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 20000,
 })
+
+function sendMailWithTimeout(mailOptions, timeoutMs = 30000) {
+  return Promise.race([
+    transporter.sendMail(mailOptions),
+    new Promise(function (_, reject) {
+      setTimeout(function () {
+        reject(new Error("Email send timed out. Check Gmail App Password on Render."))
+      }, timeoutMs)
+    }),
+  ])
+}
 
 transporter.verify(function (error) {
   if (error) {
@@ -68,7 +82,7 @@ router.post("/sendmail", authMiddleware, async function (req, res) {
   const trimmedBody = msg.trim()
 
   try {
-    const info = await transporter.sendMail({
+    const info = await sendMailWithTimeout({
       from: process.env.EMAIL_USER,
       to: recipients,
       subject: trimmedSubject,

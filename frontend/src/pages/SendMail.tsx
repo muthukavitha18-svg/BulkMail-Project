@@ -88,9 +88,17 @@ export default function SendMail() {
       setFeedback({ type: "success", message: response.data.message })
       setStatus("Sent")
     } catch (error) {
-      const message = axios.isAxiosError(error) && error.response?.data?.message
-        ? error.response.data.message
-        : "Failed to send emails. Please try again."
+      let message = "Failed to send emails. Please try again."
+
+      if (axios.isAxiosError(error)) {
+        if (error.code === "ECONNABORTED") {
+          message = "Request timed out. Render server may be waking up — wait 1 minute and try again."
+        } else if (error.response?.data?.message) {
+          message = error.response.data.message
+        } else if (!error.response) {
+          message = "Cannot reach server. Wait 30–60 seconds (Render cold start) and try again."
+        }
+      }
 
       setFeedback({ type: "error", message })
       setStatus("Failed")
@@ -128,6 +136,12 @@ export default function SendMail() {
         <p className="text-center text-gray-200 mt-3">
           Send personalized emails to thousands of users in one click
         </p>
+
+        {sending && (
+          <p className="text-center text-blue-200 text-sm mt-3">
+            First send may take 30–60 seconds while the server wakes up...
+          </p>
+        )}
 
         {feedback && (
           <div
