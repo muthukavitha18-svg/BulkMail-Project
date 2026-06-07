@@ -1,5 +1,6 @@
 const express = require("express")
 const nodemailer = require("nodemailer")
+const dns = require("dns")
 const Email = require("../models/Email")
 const authMiddleware = require("../middleware/auth")
 const logger = require("../utils/logger")
@@ -16,7 +17,11 @@ const transporter = nodemailer.createTransport({
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 20000,
+  lookup: function (hostname, options, callback) {
+    return dns.lookup(hostname, { family: 4 }, callback)
+  },
 })
+
 
 function sendMailWithTimeout(mailOptions, timeoutMs = 30000) {
   return Promise.race([
