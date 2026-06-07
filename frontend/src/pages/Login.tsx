@@ -26,7 +26,7 @@ export default function Login() {
 
       if (axios.isAxiosError(err)) {
         if (!err.response) {
-          message = "Cannot connect to server. Start backend with: cd backend && npm start"
+          message = "Cannot connect to server. Wait 30 sec and try again (Render cold start)."
         } else if (err.response.data?.message) {
           message = err.response.data.message
         }
